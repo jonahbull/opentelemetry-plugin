@@ -35,6 +35,8 @@ public class DiskUsageMonitoringInitializer extends ComputerListener {
 
     protected Meter meter;
 
+    protected Labels defaultLabels;
+
     public DiskUsageMonitoringInitializer() {
     }
 
@@ -48,7 +50,7 @@ public class DiskUsageMonitoringInitializer extends ComputerListener {
             meter.longValueObserverBuilder(JenkinsSemanticMetrics.JENKINS_DISK_USAGE_BYTES)
                     .setDescription("Disk usage of first level folder in JENKINS_HOME.")
                     .setUnit("byte")
-                    .setUpdater(result -> result.observe(calculateDiskUsageInBytes(diskUsagePlugin), Labels.empty()))
+                    .setUpdater(result -> result.observe(calculateDiskUsageInBytes(diskUsagePlugin), defaultLabels))
                     .build();
             LOGGER.log(Level.FINE, () -> "Start monitoring Jenkins controller disk usage");
         }
@@ -78,5 +80,6 @@ public class DiskUsageMonitoringInitializer extends ComputerListener {
     @Inject
     public void setMeter(@Nonnull OpenTelemetrySdkProvider openTelemetrySdkProvider) {
         this.meter = openTelemetrySdkProvider.getMeter();
+        this.defaultLabels = openTelemetrySdkProvider.getDefaultMetricsLabels();
     }
 }

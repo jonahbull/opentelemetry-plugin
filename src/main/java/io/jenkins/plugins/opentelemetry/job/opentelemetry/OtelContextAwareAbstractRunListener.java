@@ -14,6 +14,7 @@ import hudson.model.listeners.RunListener;
 import io.jenkins.plugins.opentelemetry.OpenTelemetrySdkProvider;
 import io.jenkins.plugins.opentelemetry.job.OtelTraceService;
 import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.common.Labels;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
@@ -35,12 +36,14 @@ public abstract class OtelContextAwareAbstractRunListener extends RunListener<Ru
     private OtelTraceService otelTraceService;
     private Tracer tracer;
     private Meter meter;
+    private Labels defaultMetricsLabels;
 
     @Inject
     public final void setOpenTelemetryTracerService(@Nonnull OtelTraceService otelTraceService, @Nonnull OpenTelemetrySdkProvider openTelemetrySdkProvider) {
         this.otelTraceService = otelTraceService;
         this.tracer = this.otelTraceService.getTracer();
         this.meter = openTelemetrySdkProvider.getMeter();
+        this.defaultMetricsLabels = openTelemetrySdkProvider.getDefaultMetricsLabels();
     }
 
     @Override
@@ -104,15 +107,23 @@ public abstract class OtelContextAwareAbstractRunListener extends RunListener<Ru
     public void _onDeleted(Run run) {
     }
 
+    @Nonnull
     public OtelTraceService getTraceService() {
         return otelTraceService;
     }
 
+    @Nonnull
     public Tracer getTracer() {
         return tracer;
     }
 
+    @Nonnull
     public Meter getMeter() {
         return meter;
+    }
+
+    @Nonnull
+    public Labels getDefaultMetricsLabels() {
+        return defaultMetricsLabels;
     }
 }

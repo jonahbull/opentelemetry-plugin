@@ -16,8 +16,11 @@ import io.jenkins.plugins.opentelemetry.opentelemetry.resource.JenkinsResourcePr
 import io.jenkins.plugins.opentelemetry.opentelemetry.trace.TracerDelegate;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.metrics.GlobalMeterProvider;
 import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.common.Labels;
+import io.opentelemetry.api.metrics.common.LabelsBuilder;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
@@ -41,6 +44,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -193,6 +197,20 @@ public class OpenTelemetrySdkProvider {
     @Nonnull
     public Meter getMeter() {
         return meter;
+    }
+
+    @Nonnull
+    public Labels getDefaultMetricsLabels() {
+        final LabelsBuilder labelsBuilder = Labels.builder();
+        Resource resource = buildResource();
+        for (Map.Entry<AttributeKey<?>, Object> entry: resource.getAttributes().asMap().entrySet()) {
+            final Object attributeValue = entry.getValue();
+            final AttributeKey<?> attributeKey = entry.getKey();
+            if (attributeValue instanceof String) {
+                labelsBuilder.put(attributeKey.getKey(), attributeValue.toString());
+            }
+        }
+        return labelsBuilder.build();
     }
 
     @VisibleForTesting

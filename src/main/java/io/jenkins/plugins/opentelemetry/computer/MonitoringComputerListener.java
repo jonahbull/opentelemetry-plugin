@@ -41,6 +41,8 @@ public class MonitoringComputerListener extends ComputerListener {
 
     protected Meter meter;
 
+    protected Labels defaultLabels;
+
     @PostConstruct
     public void postConstruct() {
         final Jenkins jenkins = Jenkins.get();
@@ -66,17 +68,17 @@ public class MonitoringComputerListener extends ComputerListener {
             }
         }
         meter.longValueObserverBuilder(JenkinsSemanticMetrics.JENKINS_AGENTS_OFFLINE)
-                .setUpdater(longResult -> longResult.observe(this.getOfflineAgentsCount(), Labels.empty()))
+                .setUpdater(longResult -> longResult.observe(this.getOfflineAgentsCount(), this.defaultLabels))
                 .setDescription("Number of offline agents")
                 .setUnit("1")
                 .build();
         meter.longValueObserverBuilder(JenkinsSemanticMetrics.JENKINS_AGENTS_ONLINE)
-                .setUpdater(longResult -> longResult.observe(this.getOnlineAgentsCount(), Labels.empty()))
+                .setUpdater(longResult -> longResult.observe(this.getOnlineAgentsCount(), this.defaultLabels))
                 .setDescription("Number of online agents")
                 .setUnit("1")
                 .build();
         meter.longValueObserverBuilder(JenkinsSemanticMetrics.JENKINS_AGENTS_TOTAL)
-                .setUpdater(longResult -> longResult.observe(this.getAgentsCount(), Labels.empty()))
+                .setUpdater(longResult -> longResult.observe(this.getAgentsCount(), this.defaultLabels))
                 .setDescription("Number of agents")
                 .setUnit("1")
                 .build();
@@ -139,5 +141,6 @@ public class MonitoringComputerListener extends ComputerListener {
     @Inject
     public void setMeter(@Nonnull OpenTelemetrySdkProvider openTelemetrySdkProvider) {
         this.meter = openTelemetrySdkProvider.getMeter();
+        this.defaultLabels = openTelemetrySdkProvider.getDefaultMetricsLabels();
     }
 }

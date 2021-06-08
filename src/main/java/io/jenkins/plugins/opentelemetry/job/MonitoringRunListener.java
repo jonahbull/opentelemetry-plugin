@@ -14,6 +14,7 @@ import io.jenkins.plugins.opentelemetry.job.opentelemetry.OtelContextAwareAbstra
 import io.jenkins.plugins.opentelemetry.job.opentelemetry.context.RunContextKey;
 import io.jenkins.plugins.opentelemetry.semconv.JenkinsOtelSemanticAttributes;
 import io.jenkins.plugins.opentelemetry.semconv.JenkinsSemanticMetrics;
+import io.opentelemetry.api.metrics.BoundLongCounter;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongValueObserver;
 import io.opentelemetry.api.trace.Span;
@@ -43,10 +44,10 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener {
 
     private AtomicInteger activeRun;
     private LongValueObserver activeRunObserver;
-    private LongCounter runLaunchedCounter;
-    private LongCounter runStartedCounter;
-    private LongCounter runCompletedCounter;
-    private LongCounter runAbortedCounter;
+    private BoundLongCounter runLaunchedCounter;
+    private BoundLongCounter runStartedCounter;
+    private BoundLongCounter runCompletedCounter;
+    private BoundLongCounter runAbortedCounter;
 
     private SpanNamingStrategy spanNamingStrategy;
 
@@ -56,28 +57,28 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener {
         activeRunObserver = getMeter().longValueObserverBuilder(JenkinsSemanticMetrics.CI_PIPELINE_RUN_ACTIVE)
                 .setDescription("Gauge of active jobs")
                 .setUnit("1")
-                .setUpdater(longResult -> this.activeRun.get())
+                .setUpdater(longResult -> this.activeRun.get()) // FIXME add labels
                 .build();
         runLaunchedCounter =
                 getMeter().longCounterBuilder(JenkinsSemanticMetrics.CI_PIPELINE_RUN_LAUNCHED)
                         .setDescription("Job launched")
                         .setUnit("1")
-                        .build();
+                        .build().bind(getDefaultMetricsLabels());
         runStartedCounter =
                 getMeter().longCounterBuilder(JenkinsSemanticMetrics.CI_PIPELINE_RUN_STARTED)
                         .setDescription("Job started")
                         .setUnit("1")
-                        .build();
+                        .build().bind(getDefaultMetricsLabels());
         runAbortedCounter =
                 getMeter().longCounterBuilder(JenkinsSemanticMetrics.CI_PIPELINE_RUN_ABORTED)
                         .setDescription("Job aborted")
                         .setUnit("1")
-                        .build();
+                        .build().bind(getDefaultMetricsLabels());
         runCompletedCounter =
                 getMeter().longCounterBuilder(JenkinsSemanticMetrics.CI_PIPELINE_RUN_COMPLETED)
                         .setDescription("Job completed")
                         .setUnit("1")
-                        .build();
+                        .build().bind(getDefaultMetricsLabels());
     }
 
     @Override
